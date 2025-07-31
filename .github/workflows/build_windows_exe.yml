@@ -31,11 +31,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirement.txt
         pip install pyinstaller
-        shell: cmd # Menggunakan CMD untuk menghindari masalah parsing
-
+        
     - name: Build with PyInstaller # Langkah 4: Menjalankan proses kompilasi PyInstaller
       run: |
-          pyinstaller Verifikasi_Berkas.py --onefile --noconsole --windowed --icon="casemix.ico" --name "Verifikasi Berkas"
+        pyinstaller Verifikasi_Berkas.py --onefile --noconsole --windowed --icon="casemix.ico" --name "Verifikasi Berkas"
       shell: cmd # Menggunakan CMD untuk menghindari masalah parsing
 
     - name: Upload executable as Artifact # Langkah 5: Mengunggah folder .exe sebagai "Artifact"
