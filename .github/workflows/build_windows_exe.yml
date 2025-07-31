@@ -1,0 +1,62 @@
+name: Build Windows Executable # Nama workflow yang akan muncul di tab Actions
+
+on:
+  push:
+    branches:
+      - main # Workflow akan berjalan setiap kali ada push ke branch 'main'
+  workflow_dispatch: # Ini memungkinkan Anda menjalankan workflow secara manual dari GitHub UI
+
+jobs:
+  build:
+    runs-on: windows-latest # Menggunakan mesin virtual Windows terbaru dari GitHub
+
+    steps:
+    - name: Checkout Code # Langkah 1: Mengambil kode proyek Anda
+      uses: actions/checkout@v4
+
+    - name: Set up Python # Langkah 2: Mengatur versi Python yang akan digunakan
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10' # Disarankan pakai 3.10 atau versi terbaru yang Anda gunakan
+
+    - name: Debug requirement.txt content # Langkah untuk mencetak isi requirements.txt
+      run: |
+        echo "--- Contents of requirement.txt ---"
+        type requirement.txt
+        echo "------------------------------------"
+      shell: cmd # Menggunakan CMD untuk perintah 'type'
+
+    - name: Install dependencies # Langkah 3: Menginstal semua library yang dibutuhkan
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirement.txt
+        pip install pyinstaller
+        pip install PyQt6
+        pip install pypdf
+      shell: cmd # Menggunakan CMD untuk menghindari masalah parsing
+
+    - name: Build with PyInstaller # Langkah 4: Menjalankan proses kompilasi PyInstaller
+      run: |
+          pyinstaller penggabung.py --onefile --noconsole --windowed --icon="casemix.ico" --name "PDF_File_Merger"
+      shell: cmd # Menggunakan CMD untuk menghindari masalah parsing
+
+    - name: Upload executable as Artifact # Langkah 5: Mengunggah folder .exe sebagai "Artifact"
+      uses: actions/upload-artifact@v4
+      with:
+        name: PDFMergeTool-Windows-Executables # Nama untuk artefak yang akan Anda unduh
+        path: dist/PDF_File_Merger.exe # Path ke folder .exe yang dihasilkan oleh PyInstaller
+
+    - name: Create GitHub Release # Langkah 6: Membuat Rilis di GitHub (Opsional, tapi disarankan)
+      id: create_release
+      uses: softprops/action-gh-release@v1
+      # Langkah ini HANYA akan berjalan jika Anda mendorong sebuah "tag" ke GitHub
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        tag_name: ${{ github.ref_name }} # Mengambil nama tag (misal: v1.0.0)
+        name: Rilis Aplikasi Penggabung PDF ${{ github.ref_name }} # Judul rilis
+        body: | # Deskripsi rilis
+          Versi terbaru aplikasi Penggabung PDF Anda untuk Windows.
+          Silakan unduh file executable di bawah.
+        draft: false # Bukan rilis draft
+        prerelease: false # Bukan rilis pratinjau
+        files: dist/PDF_File_Merger.exe # Melampirkan semua file di dalam folder output ke rilis ini
