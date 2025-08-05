@@ -11,9 +11,11 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QColor, QPixmap, QAction
+from PyQt6.QtGui import QIcon, QColor, QPixmap
 from openpyxl import Workbook
 from openpyxl.styles import Font as ExcelFont, PatternFill, Alignment, Side, Border
 from openpyxl.styles.colors import Color
+
 
 # --- KONFIGURASI TESSERACT OCR ---
 try:
@@ -536,6 +538,10 @@ class PdfVerifierApp(QWidget):
         self.setStyleSheet(APP_STYLESHEET)
         self.update_table_headers_and_content()
         self.setAcceptDrops(True)
+        self.setWindowIcon(QIcon('icon.ico')) 
+        self.worker_thread = None
+        self.keywords = {}
+        self.rules = {}
     
     def init_ui(self):
         main_layout = QVBoxLayout()
