@@ -34,14 +34,14 @@ jobs:
         
     - name: Build with PyInstaller # Langkah 4: Menjalankan proses kompilasi PyInstaller
       run: |
-        pyinstaller Verifikasi_Berkas.py --onefile --noconsole --windowed --icon="casemix.ico" --name "Verifikasi_Berkas"
+        pyinstaller Verifikasi.py --noconsole --windowed --icon="casemix.ico" --name "Verifikasi_Berkas"
       shell: cmd # Menggunakan CMD untuk menghindari masalah parsing
 
     - name: Upload executable as Artifact # Langkah 5: Mengunggah folder .exe sebagai "Artifact"
       uses: actions/upload-artifact@v4
       with:
         name: Verifikasi_Berkas-Windows-Executables # Nama untuk artefak yang akan Anda unduh
-        path: dist/Verifikasi_Berkas.exe # Path ke folder .exe yang dihasilkan oleh PyInstaller
+        path: dist/Verifikasi # Path ke folder .exe yang dihasilkan oleh PyInstaller
 
     - name: Create GitHub Release # Langkah 6: Membuat Rilis di GitHub (Opsional, tapi disarankan)
       id: create_release
@@ -56,4 +56,4 @@ jobs:
           Silakan unduh file executable di bawah.
         draft: false # Bukan rilis draft
         prerelease: false # Bukan rilis pratinjau
-        files: dist/Verifikasi_Berkas.exe # Melampirkan semua file di dalam folder output ke rilis ini
+        files: dist/Verifikasi # Melampirkan semua file di dalam folder output ke rilis ini
