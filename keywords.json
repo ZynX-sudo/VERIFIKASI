@@ -1,0 +1,42 @@
+[
+    [
+        "echocardiography",
+        "ECHO"
+    ],
+    [
+        "thorax",
+        "THORAX"
+    ],
+    [
+        "EEG",
+        "EEG"
+    ],
+    [
+        "KULTUR DARAH",
+        "KULTUR DARAH"
+    ],
+    [
+        "TRANSFUSI",
+        "TRANSFUSI"
+    ],
+    [
+        "KULTUR URINE",
+        "KULTUR URINE"
+    ],
+    [
+        "CT SCAN",
+        "CT SCAN"
+    ],
+    [
+        "rjp",
+        "RJP"
+    ],
+    [
+        "VENTILATOR",
+        "VENTI"
+    ],
+    [
+        "SPIROMETRI",
+        "SPIROMETRI"
+    ]
+]
