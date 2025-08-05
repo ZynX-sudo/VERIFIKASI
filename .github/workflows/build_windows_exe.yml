@@ -34,7 +34,7 @@ jobs:
         
     - name: Build with PyInstaller # Langkah 4: Menjalankan proses kompilasi PyInstaller
       run: |
-        pyinstaller Verifikasi.py --onefile --noconsole --windowed --add-data "keywords.json;." --add-data "rules.json;." --add-data "icon.ico;." --icon="icon.ico" --name "Verifikasi"
+        pyinstaller Verifikasi.py --onefile --noconsole --windowed --add-data "keywords.json;." --add-data "rules.json;." --add-data "icon.ico;." --icon="icon.ico". --add-data "logo.png;." --name "Verifikasi"
       shell: cmd # Menggunakan CMD untuk menghindari masalah parsing
 
     - name: Upload executable as Artifact # Langkah 5: Mengunggah folder .exe sebagai "Artifact"
