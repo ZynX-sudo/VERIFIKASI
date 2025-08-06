@@ -1,5 +1,0 @@
-PyQt6
-PyMuPDF
-pytesseract
-Pillow
-openpyxl
