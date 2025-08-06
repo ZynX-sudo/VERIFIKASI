@@ -3,21 +3,19 @@ import os
 import re
 import json
 import pytesseract
+from configparser import ConfigParser
 
 from PyQt6.QtWidgets import (
-    QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
+    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
     QFileDialog, QLabel, QTableWidget, QTableWidgetItem, QMessageBox,
     QHeaderView, QDialog, QLineEdit, QDialogButtonBox,
     QGridLayout, QAbstractItemView, QMenu
 )
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
-from PyQt6.QtGui import QColor, QPixmap, QAction
-from PyQt6.QtGui import QIcon, QColor, QPixmap
+from PyQt6.QtGui import QColor, QPixmap, QIcon, QAction
 from openpyxl import Workbook
 from openpyxl.styles import Font as ExcelFont, PatternFill, Alignment, Side, Border
 from openpyxl.styles.colors import Color
-from PyQt6.QtWidgets import (QApplication, QMainWindow, ...)
-from configparser import ConfigParser
 
 
 # --- KONFIGURASI TESSERACT OCR ---
