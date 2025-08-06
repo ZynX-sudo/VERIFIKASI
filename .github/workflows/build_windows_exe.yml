@@ -29,7 +29,7 @@ jobs:
       shell: pwsh # Menggunakan PowerShell untuk perintah ini
 
     - name: Install Tesseract via Chocolatey # Langkah baru: Menginstal Tesseract OCR
-      run: choco install tesseract-ocr -y # Menambahkan -y untuk otomatis setuju
+      run: choco install tesseract-ocr -y # Menggunakan nama paket yang lebih umum
 
     - name: Install Python dependencies # Langkah 3: Menginstal semua library yang dibutuhkan
       run: |
@@ -39,8 +39,9 @@ jobs:
         
     - name: Build with PyInstaller # Langkah 4: Menjalankan proses kompilasi PyInstaller
       run: |
-        # Perintah ini membundel semua file PyQt6 dan Tesseract-OCR
+        # Perintah ini membundel semua file PyQt6 dan Tesseract-OCR ke dalam sebuah folder (--onedir)
         # --windowed: Mencegah jendela konsol muncul
+        # --onedir: Membuat folder output yang berisi executable dan semua dependensi
         # --add-data "path_sumber;path_tujuan_di_bundle": Menyalin file/folder ke dalam bundle
         #   "C:\Program Files\Tesseract-OCR;Tesseract-OCR": Menyalin folder instalasi Tesseract
         #   "keywords.json;.": Menyalin keywords.json ke root bundle
@@ -50,7 +51,7 @@ jobs:
         # --icon="icon.ico": Mengatur ikon executable
         # --hidden-import="PyQt6.Qt.qwindows": Memastikan DLL penting PyQt6 disertakan
         # --name "Verifikasi": Mengatur nama folder output/executable
-        pyinstaller Verifikasi.py --windowed ^
+        pyinstaller Verifikasi.py --windowed --onedir ^
             --add-data "C:\Program Files\Tesseract-OCR;Tesseract-OCR" ^
             --add-data "keywords.json;." ^
             --add-data "rules.json;." ^
