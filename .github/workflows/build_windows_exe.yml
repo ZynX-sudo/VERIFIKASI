@@ -22,12 +22,6 @@ jobs:
         cache-dependency-path: 'requirement.txt' # Jalur ke file dependensi
 
     - name: Debug requirement.txt content # Langkah untuk mencetak isi requirement.txt (opsional, untuk debugging)
-      run: |
-        echo "--- Contents of requirement.txt ---"
-        type requirement.txt # Gunakan 'requirement.txt' sesuai standar
-        echo "------------------------------------"
-      shell: cmd # Menggunakan CMD untuk perintah 'type'
-
     - name: Install Tesseract via Chocolatey # Langkah baru: Menginstal Tesseract OCR
       run: choco install tesseract-ocr-with-extra-languages -y # Menambahkan -y untuk otomatis setuju
 
@@ -36,6 +30,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirement.txt # Pastikan nama file adalah 'requirement.txt'
         pip install pyinstaller
+        pip install openpyxl
         
     - name: Build with PyInstaller # Langkah 4: Menjalankan proses kompilasi PyInstaller
       run: |
