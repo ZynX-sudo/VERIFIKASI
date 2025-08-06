@@ -19,12 +19,12 @@ jobs:
       with:
         python-version: '3.10' # Disarankan pakai 3.10 atau versi terbaru yang Anda gunakan
         cache: 'pip' # Mengaktifkan caching untuk dependensi pip
-        cache-dependency-path: 'requirements.txt' # Jalur ke file dependensi
+        cache-dependency-path: 'requirement.txt' # Jalur ke file dependensi
 
     - name: Debug requirements.txt content # Langkah untuk mencetak isi requirements.txt (opsional, untuk debugging)
       run: |
-        echo "--- Contents of requirements.txt ---"
-        type requirements.txt # Gunakan 'requirements.txt' sesuai standar
+        echo "--- Contents of requirement.txt ---"
+        type requirement.txt # Gunakan 'requirements.txt' sesuai standar
         echo "------------------------------------"
       shell: cmd # Menggunakan CMD untuk perintah 'type'
 
@@ -34,7 +34,7 @@ jobs:
     - name: Install Python dependencies # Langkah 3: Menginstal semua library yang dibutuhkan
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirement.txt # Pastikan nama file adalah 'requirements.txt'
+        pip install -r requirement.txt # Pastikan nama file adalah 'requirement.txt'
         pip install pyinstaller
         
     - name: Build with PyInstaller # Langkah 4: Menjalankan proses kompilasi PyInstaller
