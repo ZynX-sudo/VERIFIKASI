@@ -41,7 +41,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: Verifikasi_Berkas-Windows-Executables # Nama untuk artefak yang akan Anda unduh
-        path: dist/Verifikasi.exe # PERBAIKAN: Mengunggah seluruh folder, bukan hanya file .exe
+        path: dist/Verifikasi # PERBAIKAN: Mengunggah seluruh folder, bukan hanya file .exe
 
     - name: Create GitHub Release # Langkah 6: Membuat Rilis di GitHub (Opsional, tapi disarankan)
       id: create_release
