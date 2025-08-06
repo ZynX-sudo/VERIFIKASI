@@ -34,7 +34,7 @@ jobs:
         
     - name: Build with PyInstaller # Langkah 4: Menjalankan proses kompilasi PyInstaller
       run: |
-        pyinstaller Verifikasi.py --onefile --noconsole --windowed --add-data "keywords.json;." --add-data "rules.json;." --add-data "icon.ico;." --icon="icon.ico". --add-data "logo.png;." --name "Verifikasi"
+        pyinstaller Verifikasi.py  --noconsole --windowed --add-data "keywords.json;." --add-data "rules.json;." --add-data "icon.ico;." --icon="icon.ico". --add-data "logo.png;." --name "Verifikasi"
       shell: cmd # Menggunakan CMD untuk menghindari masalah parsing
 
     - name: Upload executable as Artifact # Langkah 5: Mengunggah folder .exe sebagai "Artifact"
@@ -56,4 +56,4 @@ jobs:
           Silakan unduh file executable di bawah.
         draft: false # Bukan rilis draft
         prerelease: false # Bukan rilis pratinjau
-        files: dist/Verifikasi.exe # Melampirkan semua file di dalam folder output ke rilis ini
+        files: dist/Verifikasi # Melampirkan semua file di dalam folder output ke rilis ini
