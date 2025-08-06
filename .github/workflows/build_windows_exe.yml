@@ -21,10 +21,10 @@ jobs:
         cache: 'pip' # Mengaktifkan caching untuk dependensi pip
         cache-dependency-path: 'requirement.txt' # Jalur ke file dependensi
 
-    - name: Debug requirements.txt content # Langkah untuk mencetak isi requirements.txt (opsional, untuk debugging)
+    - name: Debug requirement.txt content # Langkah untuk mencetak isi requirement.txt (opsional, untuk debugging)
       run: |
         echo "--- Contents of requirement.txt ---"
-        type requirement.txt # Gunakan 'requirements.txt' sesuai standar
+        type requirement.txt # Gunakan 'requirement.txt' sesuai standar
         echo "------------------------------------"
       shell: cmd # Menggunakan CMD untuk perintah 'type'
 
