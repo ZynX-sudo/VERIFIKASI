@@ -2,6 +2,7 @@ import sys
 import os
 import re
 import json
+import pytesseract
 
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
@@ -15,27 +16,54 @@ from PyQt6.QtGui import QIcon, QColor, QPixmap
 from openpyxl import Workbook
 from openpyxl.styles import Font as ExcelFont, PatternFill, Alignment, Side, Border
 from openpyxl.styles.colors import Color
+from PyQt6.QtWidgets import (QApplication, QMainWindow, ...)
+from configparser import ConfigParser
 
 
 # --- KONFIGURASI TESSERACT OCR ---
+pytesseract = None
+config_file = "config.ini"
+config = ConfigParser()
+
+# Coba memuat konfigurasi dari file
 try:
-    tesseract_path = r'C:\Users\IJP-INDI\AppData\Local\Programs\Tesseract-OCR\tesseract.exe'
-    if os.path.exists(tesseract_path):
+    config.read(config_file)
+    tesseract_path = config.get("Settings", "tesseract_path", fallback="")
+except Exception:
+    tesseract_path = ""
+
+# Jika jalur belum ditemukan, minta pengguna untuk mencarinya
+if not os.path.exists(tesseract_path):
+    QMessageBox.information(None, "Konfigurasi Tesseract",
+                            "Lokasi Tesseract.exe belum ditemukan. Silakan cari file tesseract.exe.")
+    tesseract_path, _ = QFileDialog.getOpenFileName(None, "Cari tesseract.exe", "", "Executable Files (*.exe)")
+    
+    if tesseract_path:
+        # Simpan jalur baru ke file konfigurasi
+        if not config.has_section("Settings"):
+            config.add_section("Settings")
+        config.set("Settings", "tesseract_path", tesseract_path)
+        with open(config_file, 'w') as f:
+            config.write(f)
+
+# Atur jalur Tesseract untuk pytesseract
+try:
+    if tesseract_path and os.path.exists(tesseract_path):
         import pytesseract
         pytesseract.pytesseract.tesseract_cmd = tesseract_path
     else:
-        raise FileNotFoundError(f"Tesseract executable not found at: {tesseract_path}")
+        raise FileNotFoundError("Tesseract executable not found.")
 except ImportError:
     QMessageBox.warning(None, "Import Error",
-                        "Pytesseract library is not installed. Please install it using 'pip install pytesseract'.")
+                        "Pustaka pytesseract tidak terinstal. Silakan instal dengan 'pip install pytesseract'.")
     pytesseract = None
 except FileNotFoundError as e:
     QMessageBox.warning(None, "Tesseract Not Found",
-                        f"Tesseract OCR is not installed or the path is incorrect.\n{e}\nPlease install Tesseract or update the path in the script.")
+                        f"Tesseract OCR tidak terinstal atau jalur salah.\n{e}")
     pytesseract = None
 except Exception as e:
     QMessageBox.warning(None, "Konfigurasi Tesseract",
-                        f"Gagal mengatur path Tesseract OCR.\nError: {e}")
+                        f"Gagal mengatur jalur Tesseract OCR.\nError: {e}")
     pytesseract = None
 
 try:
