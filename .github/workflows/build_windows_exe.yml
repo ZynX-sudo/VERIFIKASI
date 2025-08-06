@@ -34,7 +34,7 @@ jobs:
     - name: Install Python dependencies # Langkah 3: Menginstal semua library yang dibutuhkan
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt # Pastikan nama file adalah 'requirements.txt'
+        pip install -r requirements.txt # Pastikan nama file adalah 'requirements.txt' dan TIDAK ADA KOMENTAR DI BARIS INI
         pip install pyinstaller
         
     - name: Build with PyInstaller # Langkah 4: Menjalankan proses kompilasi PyInstaller
