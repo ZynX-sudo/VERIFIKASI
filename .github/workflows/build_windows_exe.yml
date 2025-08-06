@@ -18,30 +18,54 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.10' # Disarankan pakai 3.10 atau versi terbaru yang Anda gunakan
+        cache: 'pip' # Mengaktifkan caching untuk dependensi pip
+        cache-dependency-path: 'requirements.txt' # Jalur ke file dependensi
 
-    - name: Debug requirement.txt content # Langkah untuk mencetak isi requirements.txt
+    - name: Debug requirements.txt content # Langkah untuk mencetak isi requirements.txt (opsional, untuk debugging)
       run: |
-        echo "--- Contents of requirement.txt ---"
-        type requirement.txt
+        echo "--- Contents of requirements.txt ---"
+        type requirements.txt # Gunakan 'requirements.txt' sesuai standar
         echo "------------------------------------"
       shell: cmd # Menggunakan CMD untuk perintah 'type'
 
-    - name: Install dependencies # Langkah 3: Menginstal semua library yang dibutuhkan
+    - name: Install Tesseract via Chocolatey # Langkah baru: Menginstal Tesseract OCR
+      run: choco install tesseract-ocr-with-extra-languages -y # Menambahkan -y untuk otomatis setuju
+
+    - name: Install Python dependencies # Langkah 3: Menginstal semua library yang dibutuhkan
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirement.txt
+        pip install -r requirements.txt # Pastikan nama file adalah 'requirements.txt'
         pip install pyinstaller
         
     - name: Build with PyInstaller # Langkah 4: Menjalankan proses kompilasi PyInstaller
       run: |
-        pyinstaller Verifikasi.py  --noconsole --windowed --add-data "keywords.json;." --add-data "rules.json;." --add-data "icon.ico;." --icon="icon.ico". --add-data "logo.png;." --name "Verifikasi"
-      shell: cmd # Menggunakan CMD untuk menghindari masalah parsing
+        # Perintah ini membundel semua file PyQt6 dan Tesseract-OCR
+        # --windowed: Mencegah jendela konsol muncul
+        # --add-data "path_sumber;path_tujuan_di_bundle": Menyalin file/folder ke dalam bundle
+        #   "C:\Program Files\Tesseract-OCR;Tesseract-OCR": Menyalin folder instalasi Tesseract
+        #   "keywords.json;.": Menyalin keywords.json ke root bundle
+        #   "rules.json;.": Menyalin rules.json ke root bundle
+        #   "icon.ico;." : Menyalin icon.ico ke root bundle
+        #   "logo.png;." : Menyalin logo.png ke root bundle
+        # --icon="icon.ico": Mengatur ikon executable
+        # --hidden-import="PyQt6.Qt.qwindows": Memastikan DLL penting PyQt6 disertakan
+        # --name "Verifikasi": Mengatur nama folder output/executable
+        pyinstaller Verifikasi.py --windowed ^
+            --add-data "C:\Program Files\Tesseract-OCR;Tesseract-OCR" ^
+            --add-data "keywords.json;." ^
+            --add-data "rules.json;." ^
+            --add-data "icon.ico;." ^
+            --icon="icon.ico" ^
+            --add-data "logo.png;." ^
+            --hidden-import="PyQt6.Qt.qwindows" ^
+            --name "Verifikasi"
+      shell: cmd # Menggunakan CMD untuk menghindari masalah parsing dengan tanda '^'
 
     - name: Upload executable as Artifact # Langkah 5: Mengunggah folder .exe sebagai "Artifact"
       uses: actions/upload-artifact@v4
       with:
         name: Verifikasi_Berkas-Windows-Executables # Nama untuk artefak yang akan Anda unduh
-        path: dist/Verifikasi # PERBAIKAN: Mengunggah seluruh folder, bukan hanya file .exe
+        path: dist/Verifikasi # Mengunggah seluruh folder yang dibuat PyInstaller
 
     - name: Create GitHub Release # Langkah 6: Membuat Rilis di GitHub (Opsional, tapi disarankan)
       id: create_release
@@ -52,8 +76,8 @@ jobs:
         tag_name: ${{ github.ref_name }} # Mengambil nama tag (misal: v1.0.0)
         name: Rilis Aplikasi Verifikasi Berkas ${{ github.ref_name }} # Judul rilis
         body: | # Deskripsi rilis
-          Versi terbaru aplikasi Penggabung PDF Anda untuk Windows.
+          Versi terbaru aplikasi Verifikasi Berkas Anda untuk Windows.
           Silakan unduh file executable di bawah.
         draft: false # Bukan rilis draft
         prerelease: false # Bukan rilis pratinjau
-        files: dist/Verifikasi # Melampirkan semua file di dalam folder output ke rilis ini
+        files: dist/Verifikasi/** # Melampirkan semua file di dalam folder output ke rilis ini
