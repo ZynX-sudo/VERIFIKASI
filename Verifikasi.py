@@ -17,76 +17,6 @@ from openpyxl import Workbook
 from openpyxl.styles import Font as ExcelFont, PatternFill, Alignment, Side, Border
 from openpyxl.styles.colors import Color
 
-
-# --- KONFIGURASI TESSERACT OCR ---
-pytesseract = None
-config_file = "config.ini"
-config = ConfigParser()
-
-# Coba memuat konfigurasi dari file
-try:
-    config.read(config_file)
-    tesseract_path = config.get("Settings", "tesseract_path", fallback="")
-except Exception:
-    tesseract_path = ""
-
-# Jika jalur belum ditemukan, minta pengguna untuk mencarinya
-if not os.path.exists(tesseract_path):
-    QMessageBox.information(None, "Konfigurasi Tesseract",
-                            "Lokasi Tesseract.exe belum ditemukan. Silakan cari file tesseract.exe.")
-    tesseract_path, _ = QFileDialog.getOpenFileName(None, "Cari tesseract.exe", "", "Executable Files (*.exe)")
-    
-    if tesseract_path:
-        # Simpan jalur baru ke file konfigurasi
-        if not config.has_section("Settings"):
-            config.add_section("Settings")
-        config.set("Settings", "tesseract_path", tesseract_path)
-        with open(config_file, 'w') as f:
-            config.write(f)
-
-# Atur jalur Tesseract untuk pytesseract
-try:
-    if tesseract_path and os.path.exists(tesseract_path):
-        import pytesseract
-        pytesseract.pytesseract.tesseract_cmd = tesseract_path
-    else:
-        raise FileNotFoundError("Tesseract executable not found.")
-except ImportError:
-    QMessageBox.warning(None, "Import Error",
-                        "Pustaka pytesseract tidak terinstal. Silakan instal dengan 'pip install pytesseract'.")
-    pytesseract = None
-except FileNotFoundError as e:
-    QMessageBox.warning(None, "Tesseract Not Found",
-                        f"Tesseract OCR tidak terinstal atau jalur salah.\n{e}")
-    pytesseract = None
-except Exception as e:
-    QMessageBox.warning(None, "Konfigurasi Tesseract",
-                        f"Gagal mengatur jalur Tesseract OCR.\nError: {e}")
-    pytesseract = None
-
-try:
-    import fitz # PyMuPDF
-except ImportError:
-    QMessageBox.critical(None, "Import Error",
-                         "PyMuPDF library is not installed. Please install it using 'pip install PyMuPDF'.")
-    sys.exit(1)
-
-try:
-    from PIL import Image
-except ImportError:
-    QMessageBox.critical(None, "Import Error",
-                         "Pillow library is not installed. Please install it using 'pip install Pillow'.")
-    sys.exit(1)
-
-
-# --- KONSTANTA PENTING ---
-EXTRACTION_KEYWORD_PRIMARY = "Diagnosa"
-REGEX_EXTRACTION_PRIMARY = re.compile(
-    rf"{EXTRACTION_KEYWORD_PRIMARY}(?:\s*Utama|\s*\d\.?)?\s*[:;,-]?\s*(.*?)(?={EXTRACTION_KEYWORD_PRIMARY}(?:\s*Sekunder|\s*\d\.?)?|Validasi hasil|\Z)",
-    re.IGNORECASE | re.DOTALL
-)
-REGEX_SPLIT_DIAGNOSA = re.compile(r"^(\s*([a-zA-Z]\d{2}(?:\.\d{1,2})?))(?:\s*-\s*|\s*)(.*)", re.IGNORECASE)
-
 # --- Check for TextWordWrap attribute
 WORD_WRAP_FLAG = 0
 if hasattr(Qt, 'TextWordWrap'):
@@ -167,10 +97,26 @@ def get_resource_path(relative_path):
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
+# --- KONSTANTA PENTING ---
+EXTRACTION_KEYWORD_PRIMARY = "Diagnosa"
+REGEX_EXTRACTION_PRIMARY = re.compile(
+    rf"{EXTRACTION_KEYWORD_PRIMARY}(?:\s*Utama|\s*\d\.?)?\s*[:;,-]?\s*(.*?)(?={EXTRACTION_KEYWORD_PRIMARY}(?:\s*Sekunder|\s*\d\.?)?|Validasi hasil|\Z)",
+    re.IGNORECASE | re.DOTALL
+)
+REGEX_SPLIT_DIAGNOSA = re.compile(r"^(\s*([a-zA-Z]\d{2}(?:\.\d{1,2})?))(?:\s*-\s*|\s*)(.*)", re.IGNORECASE)
+
 # --- Kelas Worker untuk Memproses PDF (Berjalan di Thread Terpisah) ---
 class PdfProcessingWorker(QThread):
     finished = pyqtSignal(str, dict, str, dict, bool)
     keyword_found_signal = pyqtSignal(str, str, int)
+
+    def __init__(self, pdf_path, texts_to_find_tuples, dpi, validation_rules, code_text):
+        super().__init__()
+        self.pdf_path = pdf_path
+        self.texts_to_find_tuples = texts_to_find_tuples
+        self.dpi = dpi
+        self.validation_rules = validation_rules
+        self.code_text = code_text
 
     def _get_page_text(self, page, page_num, dpi):
         page_text_from_pdf = page.get_text()
@@ -201,14 +147,6 @@ class PdfProcessingWorker(QThread):
                 return ""
             else:
                 raise Exception(f"Error serius saat OCR di halaman {page_num + 1}: {e}")
-
-    def __init__(self, pdf_path, texts_to_find_tuples, dpi, validation_rules, code_text):
-        super().__init__()
-        self.pdf_path = pdf_path
-        self.texts_to_find_tuples = texts_to_find_tuples
-        self.dpi = dpi
-        self.validation_rules = validation_rules
-        self.code_text = code_text
 
     def run(self):
         grouped_search_texts = {}
@@ -550,6 +488,10 @@ class ValidationRuleManagerDialog(QDialog):
 class PdfVerifierApp(QWidget):
     def __init__(self):
         super().__init__()
+        
+        # Panggil metode setup di sini
+        self._setup_tesseract_and_dependencies()
+        
         self.setWindowTitle("Aplikasi Verifikasi Berkas")
         self.setGeometry(100, 100, 1200, 600)
         self.worker_threads = []
@@ -558,6 +500,7 @@ class PdfVerifierApp(QWidget):
         self.list_teks_dicari = []
         self.validation_rules = []
         self.unique_display_headers = []
+        
         self.load_keywords()
         self.load_validation_rules()
         self.init_ui()
@@ -569,6 +512,65 @@ class PdfVerifierApp(QWidget):
         self.keywords = {}
         self.rules = {}
     
+    def _setup_tesseract_and_dependencies(self):
+        """Memuat konfigurasi dan memeriksa dependensi yang memerlukan QMessageBox."""
+        global pytesseract
+        
+        # --- KONFIGURASI TESSERACT OCR ---
+        config_file = "config.ini"
+        config = ConfigParser()
+
+        try:
+            config.read(config_file)
+            tesseract_path = config.get("Settings", "tesseract_path", fallback="")
+        except Exception:
+            tesseract_path = ""
+
+        if not os.path.exists(tesseract_path):
+            QMessageBox.information(self, "Konfigurasi Tesseract",
+                                    "Lokasi Tesseract.exe belum ditemukan. Silakan cari file tesseract.exe.")
+            tesseract_path, _ = QFileDialog.getOpenFileName(self, "Cari tesseract.exe", "", "Executable Files (*.exe)")
+            
+            if tesseract_path:
+                if not config.has_section("Settings"):
+                    config.add_section("Settings")
+                config.set("Settings", "tesseract_path", tesseract_path)
+                with open(config_file, 'w') as f:
+                    config.write(f)
+
+        try:
+            if tesseract_path and os.path.exists(tesseract_path):
+                import pytesseract
+                pytesseract.pytesseract.tesseract_cmd = tesseract_path
+            else:
+                raise FileNotFoundError("Tesseract executable not found.")
+        except ImportError:
+            QMessageBox.warning(self, "Import Error",
+                                "Pustaka pytesseract tidak terinstal. Silakan instal dengan 'pip install pytesseract'.")
+            pytesseract = None
+        except FileNotFoundError as e:
+            QMessageBox.warning(self, "Tesseract Not Found",
+                                f"Tesseract OCR tidak terinstal atau jalur salah.\n{e}")
+            pytesseract = None
+        except Exception as e:
+            QMessageBox.warning(self, "Konfigurasi Tesseract",
+                                f"Gagal mengatur jalur Tesseract OCR.\nError: {e}")
+            pytesseract = None
+            
+        try:
+            import fitz # PyMuPDF
+        except ImportError:
+            QMessageBox.critical(self, "Import Error",
+                                 "PyMuPDF library is not installed. Please install it using 'pip install PyMuPDF'.")
+            sys.exit(1)
+
+        try:
+            from PIL import Image
+        except ImportError:
+            QMessageBox.critical(self, "Import Error",
+                                 "Pillow library is not installed. Please install it using 'pip install Pillow'.")
+            sys.exit(1)
+
     def init_ui(self):
         main_layout = QVBoxLayout()
         header_layout = QHBoxLayout()
@@ -1108,4 +1110,3 @@ if __name__ == "__main__":
     window = PdfVerifierApp()
     window.show()
     sys.exit(app.exec())
-
