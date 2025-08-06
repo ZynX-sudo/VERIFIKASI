@@ -203,7 +203,7 @@ class PdfProcessingWorker(QThread):
             
             for page_num in range(document.page_count):
                 page_content = self._get_page_text(document.load_page(page_num), page_num, self.dpi)
-                if re.search(r'\b(kriteria\s+discharge\s+planing|rm\s*29|permintaan\s+rawat\s+inap)\b', page_content.lower(), re.IGNORECASE | re.DOTALL):
+                if re.search(r'\b(kriteria\s+discharge\s+planing|rm\s*29|permintaan\s+rawat\s+inap|discharge\s+planing)\b', page_content.lower(), re.IGNORECASE | re.DOTALL):
                     start_page_for_keywords = page_num
                     found_ringkasan_keyword = True
                     break
